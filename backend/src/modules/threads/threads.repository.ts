@@ -187,3 +187,114 @@ export async function listThreads(
 
   return result.rows.map(mapThreadSummaryRow);
 }
+
+// Get user's own threads
+export async function getUserThreads(params: {
+  userId: number;
+  page: number;
+  pageSize: number;
+}): Promise<ThreadSummary[]> {
+  const offset = (params.page - 1) * params.pageSize;
+
+  const result = await query<ThreadSummaryRow>(
+    `
+    SELECT 
+      t.id,
+      t.title,
+      t.body,
+      t.created_at,
+      t.updated_at,
+      t.author_user_id,
+      u.handle as author_handle,
+      c.name as category_name,
+      c.slug as category_slug,
+      COUNT(DISTINCT r.id) as reply_count,
+      COUNT(DISTINCT tr.id) as like_count
+    FROM threads t
+    LEFT JOIN users u ON u.id = t.author_user_id
+    LEFT JOIN categories c ON c.slug = t.category_slug
+    LEFT JOIN replies r ON r.thread_id = t.id
+    LEFT JOIN thread_reactions tr ON tr.thread_id = t.id AND tr.reaction_type = 'like'
+    WHERE t.author_user_id = $1
+    GROUP BY t.id, u.id, c.id
+    ORDER BY t.created_at DESC
+    LIMIT $2 OFFSET $3
+    `,
+    [params.userId, params.pageSize, offset]
+  );
+
+  return result.rows.map(mapThreadSummaryRow);
+}
+
+// Update thread
+export async function updateThread(params: {
+  threadId: number;
+  title: string;
+  body: string;
+}): Promise<ThreadDetail> {
+  const result = await query<ThreadDetailRow>(
+    `
+    UPDATE threads
+    SET title = $1, body = $2, updated_at = NOW()
+    WHERE id = $3
+    RETURNING 
+      id,
+      title,
+      body,
+      category_slug,
+      author_user_id,
+      created_at,
+      updated_at
+    `,
+    [params.title, params.body, params.threadId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new NotFoundError("Thread not found");
+  }
+
+  const threadRow = result.rows[0];
+
+  // Fetch author info
+  const authorResult = await query<{ id: number; handle: string }>(
+    `SELECT id, handle FROM users WHERE id = $1`,
+    [threadRow.author_user_id]
+  );
+
+  const author = authorResult.rows[0];
+
+  return {
+    id: threadRow.id,
+    title: threadRow.title,
+    body: threadRow.body,
+    category: {
+      slug: threadRow.category_slug,
+      name: threadRow.category_slug, // placeholder
+    },
+    author: {
+      id: author.id,
+      handle: author.handle,
+    },
+    createdAt: threadRow.created_at,
+    updatedAt: threadRow.updated_at,
+    likeCount: 0,
+    replyCount: 0,
+    viewerHasLikedThisPostOrNot: false,
+  };
+}
+
+// Delete thread
+export async function deleteThread(threadId: number): Promise<void> {
+  // Delete thread reactions first
+  await query(`DELETE FROM thread_reactions WHERE thread_id = $1`, [threadId]);
+
+  // Delete replies first
+  await query(`DELETE FROM replies WHERE thread_id = $1`, [threadId]);
+
+  // Delete the thread
+  const result = await query(`DELETE FROM threads WHERE id = $1`, [threadId]);
+
+  if (result.rowCount === 0) {
+    throw new NotFoundError("Thread not found");
+  }
+}

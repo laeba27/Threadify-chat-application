@@ -5,6 +5,9 @@ import {
   listCategories,
   listThreads,
   parseThreadListFilter,
+  getUserThreads,
+  updateThread,
+  deleteThread,
 } from "../modules/threads/threads.repository.js";
 import { getAuth } from "../config/clerk.js";
 import { BadRequestError, UnauthorizedError } from "../lib/errors.js";
@@ -243,6 +246,96 @@ threadsRouter.delete("/threads/:threadId/like", async (req, res, next) => {
       threadId,
       userId: profile.user.id,
     });
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get user's own threads
+threadsRouter.get("/my-threads", async (req, res, next) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const profile = await getUserFromClerk(auth.userId);
+
+    const filter = parseThreadListFilter({
+      page: req.query.page,
+      pageSize: req.query.pageSize,
+    });
+
+    const userThreads = await getUserThreads({
+      userId: profile.user.id,
+      page: filter.page,
+      pageSize: filter.pageSize,
+    });
+
+    res.json({ data: userThreads });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Update thread
+threadsRouter.patch("/threads/:threadId", async (req, res, next) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const threadId = Number(req.params.threadId);
+    if (!Number.isInteger(threadId) || threadId <= 0) {
+      throw new BadRequestError("Invalid thread Id");
+    }
+
+    const parsedBody = CreatedThreadSchema.parse(req.body);
+    const profile = await getUserFromClerk(auth.userId);
+
+    // Check if user is the author
+    const threadDetails = await getThreadById(threadId);
+    if (threadDetails.author.id !== profile.user.id) {
+      throw new UnauthorizedError("You can only edit your own threads");
+    }
+
+    const updatedThread = await updateThread({
+      threadId,
+      title: parsedBody.title,
+      body: parsedBody.body,
+    });
+
+    res.json({ data: updatedThread });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete thread
+threadsRouter.delete("/threads/:threadId", async (req, res, next) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const threadId = Number(req.params.threadId);
+    if (!Number.isInteger(threadId) || threadId <= 0) {
+      throw new BadRequestError("Invalid thread Id");
+    }
+
+    const profile = await getUserFromClerk(auth.userId);
+
+    // Check if user is the author
+    const threadDetails = await getThreadById(threadId);
+    if (threadDetails.author.id !== profile.user.id) {
+      throw new UnauthorizedError("You can only delete your own threads");
+    }
+
+    await deleteThread(threadId);
 
     res.status(204).send();
   } catch (err) {

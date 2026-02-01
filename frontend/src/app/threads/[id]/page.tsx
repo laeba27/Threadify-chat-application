@@ -282,7 +282,7 @@ function ThreadsDetailsPage() {
         <CardContent className="space-y-5">
           <div className="space-y-3">
             <div 
-              className="text-sm leading-relaxed text-muted-foreground prose prose-sm dark:prose-invert max-w-none"
+              className="text-sm leading-relaxed text-foreground prose prose-sm dark:prose-invert max-w-none [&>*]:text-foreground [&>p]:text-foreground [&>h1]:text-foreground [&>h2]:text-foreground [&>h3]:text-foreground [&>ul]:text-foreground [&>ol]:text-foreground [&>li]:text-foreground [&>a]:text-primary [&>a]:hover:text-primary/80"
               dangerouslySetInnerHTML={{ __html: thread.body }}
             />
           </div>

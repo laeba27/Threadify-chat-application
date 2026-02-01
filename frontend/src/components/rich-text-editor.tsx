@@ -279,7 +279,7 @@ export function RichTextEditor({
         onInput={handleInput}
         onBlur={handleInput}
         suppressContentEditableWarning
-        className="min-h-96 p-4 focus:outline-none text-foreground text-sm bg-background resize-none overflow-auto"
+        className="min-h-96 p-4 focus:outline-none text-foreground text-sm bg-background resize-none overflow-auto [&>*]:text-foreground [&>p]:text-foreground [&>h1]:text-foreground [&>h2]:text-foreground [&>h3]:text-foreground [&>ul]:text-foreground [&>ol]:text-foreground [&>li]:text-foreground [&>a]:text-primary [&>a]:hover:text-primary/80 [&>strong]:text-foreground [&>b]:text-foreground [&>em]:text-foreground [&>i]:text-foreground"
         style={{
           minHeight: `${rows * 1.5}rem`,
           maxHeight: "600px",

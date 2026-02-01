@@ -165,3 +165,93 @@
     @apply max-h-48 w-auto object-contain;
   }
 }
+
+@layer components {
+  /* Dark theme styling for dynamically inserted HTML content */
+  .dark [dangerouslySetInnerHTML] > * {
+    @apply text-foreground;
+  }
+
+  .dark p {
+    @apply text-foreground;
+  }
+
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6 {
+    @apply text-foreground;
+  }
+
+  .dark li {
+    @apply text-foreground;
+  }
+
+  .dark ul,
+  .dark ol {
+    @apply text-foreground;
+  }
+
+  .dark a {
+    @apply text-primary hover:text-primary/80;
+  }
+
+  .dark strong,
+  .dark b {
+    @apply text-foreground font-semibold;
+  }
+
+  .dark em,
+  .dark i {
+    @apply text-foreground;
+  }
+
+  .dark u {
+    @apply text-foreground underline;
+  }
+
+  .dark blockquote {
+    @apply text-foreground border-border/50;
+  }
+
+  /* Ensure rich text editor content displays correctly */
+  [contenteditable] {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] * {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] p {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] h1,
+  .dark [contenteditable] h2,
+  .dark [contenteditable] h3,
+  .dark [contenteditable] h4,
+  .dark [contenteditable] h5,
+  .dark [contenteditable] h6 {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] ul,
+  .dark [contenteditable] ol {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] li {
+    @apply text-foreground;
+  }
+
+  .dark [contenteditable] a {
+    @apply text-primary hover:text-primary/80;
+  }
+}

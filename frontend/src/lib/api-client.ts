@@ -54,4 +54,23 @@ export async function apiPatch<TBody, TResponse>(
   return res.data.data;
 }
 
-// homework -> apiPost
+export async function apiPost<TBody = any, TResponse = any>(
+  client: AxiosInstance,
+  url: string,
+  body?: TBody,
+  config?: AxiosRequestConfig
+): Promise<TResponse> {
+  const res = await client.post<{ data: TResponse }>(url, body || {}, config);
+
+  return res.data.data;
+}
+
+export async function apiDelete<TResponse = any>(
+  client: AxiosInstance,
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<TResponse> {
+  const res = await client.delete<{ data: TResponse }>(url, config);
+
+  return res.data.data;
+}
